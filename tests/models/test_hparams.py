@@ -128,7 +128,7 @@ class ImplicitArgsModel(EvalModelTemplate):
 
 
 @pytest.mark.parametrize("cls", [ExplicitArgsModel, ImplicitArgsModel])
-def test_explicit_args_hparams(tmpdir, cls):
+def test_loaded_args_hparams(tmpdir, cls):
     # init model
     model = cls(test_arg=14, test_arg2=90)
 
