@@ -49,200 +49,95 @@ def _run_standard_hparams_test(tmpdir, model, cls):
     return raw_checkpoint_path
 
 
-def test_namespace_hparams(tmpdir):
-    """
-    Tests that a model can take a Namespace object
-    """
-
-    # define model
-    class TestModel(EvalModelTemplate):
-        def __init__(self, hparams: Namespace):
-            super().__init__()
-            self.save_hyperparameters(hparams)
-
-    model = TestModel(hparams=Namespace(test_arg=14))
-
-    # run standard test suite
-    _run_standard_hparams_test(tmpdir, model, TestModel)
+class HparamsModel(EvalModelTemplate):
+    """Tests that a model can take a Namespace object"""
+    def __init__(self, hparams):
+        super().__init__()
+        self.save_hyperparameters(hparams)
 
 
-def test_namespace_assign_hparams(tmpdir):
-    """
-    Tests that a model can take a Namespace object with explicit setter
-    """
+class HparamsDirectModel(EvalModelTemplate):
+    """Tests that a model can take a Namespace object with explicit setter"""
+    def __init__(self, hparams):
+        super().__init__()
+        self.hparams = hparams
 
-    # define model
-    class TestModel(EvalModelTemplate):
-        def __init__(self, hparams: Namespace):
-            super().__init__()
-            self.hparams = hparams
 
-    model = TestModel(hparams=Namespace(test_arg=14))
+@pytest.mark.parametrize("cls", [HparamsModel, HparamsDirectModel])
+def test_namespace_hparams(tmpdir, cls):
+    # init model
+    model = cls(hparams=Namespace(test_arg=14))
 
     # run standard test suite
-    _run_standard_hparams_test(tmpdir, model, TestModel)
+    _run_standard_hparams_test(tmpdir, model, cls)
 
 
-def test_dict_hparams(tmpdir):
-    """
-    Tests that a model can take a dict object
-    """
-
-    # define model
-    class TestModel(EvalModelTemplate):
-        def __init__(self, hparams: dict):
-            super().__init__()
-            self.save_hyperparameters(hparams)
-
-    model = TestModel(hparams={'test_arg': 14})
+@pytest.mark.parametrize("cls", [HparamsModel, HparamsDirectModel])
+def test_dict_hparams(tmpdir, cls):
+    # init model
+    model = cls(hparams={'test_arg': 14})
 
     # run standard test suite
-    _run_standard_hparams_test(tmpdir, model, TestModel)
+    _run_standard_hparams_test(tmpdir, model, cls)
 
 
-def test_dict_assign_hparams(tmpdir):
-    """
-    Tests that a model can take a dict object with explicit setter
-    """
-
-    # define model
-    class TestModel(EvalModelTemplate):
-        def __init__(self, hparams: dict):
-            super().__init__()
-            self.hparams = hparams
-
-    model = TestModel(hparams={'test_arg': 14})
-
-    # run standard test suite
-    _run_standard_hparams_test(tmpdir, model, TestModel)
-
-
-def test_omega_conf_hparams(tmpdir):
-    """
-    Tests that a model can take OmegaConf object
-    """
-
-    # define model
-    class TestModel(EvalModelTemplate):
-        def __init__(self, hparams: OmegaConf):
-            super().__init__()
-            self.save_hyperparameters(hparams)
+@pytest.mark.parametrize("cls", [HparamsModel, HparamsDirectModel])
+def test_omega_conf_hparams(tmpdir, cls):
 
     conf = OmegaConf.create(dict(test_arg=14, list=[15.4, dict(a=1, b=2)]))
-    model = TestModel(hparams=conf)
+    # init model
+    model = cls(hparams=conf)
 
     # run standard test suite
-    raw_checkpoint_path = _run_standard_hparams_test(tmpdir, model, TestModel)
-    model = TestModel.load_from_checkpoint(raw_checkpoint_path)
+    raw_checkpoint_path = _run_standard_hparams_test(tmpdir, model, cls)
+    model = cls.load_from_checkpoint(raw_checkpoint_path)
 
     # config specific tests
     assert model.hparams.list[0] == 15.4
 
 
-def test_omega_assign_hparams(tmpdir):
-    """
-    Tests that a model can take Omegaconf and assign
-    """
-
-    # define model
-    class TestModel(EvalModelTemplate):
-        def __init__(self, hparams: OmegaConf):
-            super().__init__()
-            self.hparams = hparams
-
-    conf = OmegaConf.create(dict(test_arg=14, list=[15.4, dict(a=1, b=2)]))
-    model = TestModel(hparams=conf)
-
-    # run standard test suite
-    raw_checkpoint_path = _run_standard_hparams_test(tmpdir, model, TestModel)
-    model = TestModel.load_from_checkpoint(raw_checkpoint_path)
-
-    # config specific tests
-    assert model.hparams.list[0] == 15.4
-
-
-def test_omega_dict_config_hparams(tmpdir):
+@pytest.mark.parametrize("cls", [HparamsModel, HparamsDirectModel])
+def test_omega_dict_config_hparams(tmpdir, cls):
     """
     Tests that a model can take DictConfig object
     """
-    # define model
-    class TestModel(EvalModelTemplate):
-        def __init__(self, hparams: DictConfig):
-            super().__init__()
-            self.save_hyperparameters(hparams)
-
-    conf = OmegaConf.create(dict(test_arg=14, list=[15.4, dict(a=1, b=2)]))
-    model = TestModel(hparams=conf)
+    conf = DictConfig.create(dict(test_arg=14, list=[15.4, dict(a=1, b=2)]))
+    # init model
+    model = cls(hparams=conf)
 
     # run standard test suite
-    raw_checkpoint_path = _run_standard_hparams_test(tmpdir, model, TestModel)
-    model = TestModel.load_from_checkpoint(raw_checkpoint_path)
+    raw_checkpoint_path = _run_standard_hparams_test(tmpdir, model, cls)
+    model = cls.load_from_checkpoint(raw_checkpoint_path)
 
     # config specific tests
     assert model.hparams.list[0] == 15.4
 
 
-def test_dict_config_assign_hparams(tmpdir):
-    """
-    Tests that a model can take DictConfig and assign
-    """
-    # define model
-    class TestModel(EvalModelTemplate):
-        def __init__(self, hparams: DictConfig):
-            super().__init__()
-            self.hparams = hparams
-
-    conf = OmegaConf.create(dict(test_arg=14, list=[15.4, dict(a=1, b=2)]))
-    model = TestModel(hparams=conf)
-
-    # run standard test suite
-    raw_checkpoint_path = _run_standard_hparams_test(tmpdir, model, TestModel)
-    model = TestModel.load_from_checkpoint(raw_checkpoint_path)
-
-    # config specific tests
-    assert model.hparams.list[0] == 15.4
+class ExplicitArgsModel(EvalModelTemplate):
+    """Tests that a model can take implicit args and assign"""
+    def __init__(self, test_arg, test_arg2):
+        super().__init__()
+        self.save_hyperparameters('test_arg', 'test_arg2')
 
 
-def test_explicit_args_hparams(tmpdir):
-    """
-    Tests that a model can take implicit args and assign
-    """
+class ImplicitArgsModel(EvalModelTemplate):
+    """Tests that a model can take regular args and assign"""
+    def __init__(self, test_arg, test_arg2):
+        super().__init__()
+        self.save_hyperparameters()
 
-    # define model
-    class TestModel(EvalModelTemplate):
-        def __init__(self, test_arg, test_arg2):
-            super().__init__()
-            self.save_hyperparameters(['test_arg', 'test_arg2'])
 
-    model = TestModel(test_arg=14, test_arg2=90)
+@pytest.mark.parametrize("cls", [ExplicitArgsModel, ImplicitArgsModel])
+def test_explicit_args_hparams(tmpdir, cls):
+    # init model
+    model = cls(test_arg=14, test_arg2=90)
 
     # run standard test suite
-    raw_checkpoint_path = _run_standard_hparams_test(tmpdir, model, TestModel)
-    model = TestModel.load_from_checkpoint(raw_checkpoint_path, test_arg2=120)
+    raw_checkpoint_path = _run_standard_hparams_test(tmpdir, model, cls)
+    model = cls.load_from_checkpoint(raw_checkpoint_path, test_arg2=120)
 
     # config specific tests
     assert model.hparams.test_arg2 == 120
-
-
-def test_implicit_args_hparams(tmpdir):
-    """
-    Tests that a model can take regular args and assign
-    """
-
-    # define model
-    class TestModel(EvalModelTemplate):
-        def __init__(self, test_arg, test_arg2):
-            super().__init__()
-            self.save_hyperparameters()
-
-    model = TestModel(test_arg=14, test_arg2=90)
-
-    # run standard test suite
-    raw_checkpoint_path = _run_standard_hparams_test(tmpdir, model, TestModel)
-    model = TestModel.load_from_checkpoint(raw_checkpoint_path, test_arg2=120)
-
-    # config specific tests
-    assert model.test_arg2 == 120
 
 
 def test_explicit_missing_args_hparams(tmpdir):
@@ -254,7 +149,7 @@ def test_explicit_missing_args_hparams(tmpdir):
     class TestModel(EvalModelTemplate):
         def __init__(self, test_arg, test_arg2):
             super().__init__()
-            self.save_hyperparameters(['test_arg'])
+            self.save_hyperparameters('test_arg')
 
     model = TestModel(test_arg=14, test_arg2=90)
 
